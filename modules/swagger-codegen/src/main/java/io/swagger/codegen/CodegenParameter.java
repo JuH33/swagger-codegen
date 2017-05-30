@@ -14,6 +14,7 @@ public class CodegenParameter {
 
     public String example; // example value (x-example)
     public String jsonSchema;
+    public String enumFormatted; // Used in StaticHtml2Generator TODO Implement it in DefaultGenerator ?
     public boolean isString, isInteger, isLong, isFloat, isDouble, isByteArray, isBinary, isBoolean, isDate, isDateTime;
     public boolean isListContainer, isMapContainer;
     public boolean isFile, notFile;
@@ -117,6 +118,7 @@ public class CodegenParameter {
         output.defaultValue = this.defaultValue;
         output.example = this.example;
         output.isEnum = this.isEnum;
+        output.enumFormatted = this.enumFormatted;
         if (this._enum != null) {
             output._enum = new ArrayList<String>(this._enum);
         }
@@ -237,6 +239,8 @@ public class CodegenParameter {
             return false;
         if (_enum != null ? !_enum.equals(that._enum) : that._enum != null)
             return false;
+        if (enumFormatted != null ? !enumFormatted.equals(that.enumFormatted) : that.enumFormatted != null)
+            return false;
         if (allowableValues != null ? !allowableValues.equals(that.allowableValues) : that.allowableValues != null)
             return false;
         if (items != null ? !items.equals(that.items) : that.items != null)
@@ -297,6 +301,7 @@ public class CodegenParameter {
         result = 31 * result + (defaultValue != null ? defaultValue.hashCode() : 0);
         result = 31 * result + (example != null ? example.hashCode() : 0);
         result = 31 * result + (jsonSchema != null ? jsonSchema.hashCode() : 0);
+        result = 31 * result + (enumFormatted != null ? enumFormatted.hashCode() : 0);
         result = 31 * result + (isString ? 13:31);
         result = 31 * result + (isInteger ? 13:31);
         result = 31 * result + (isLong ? 13:31);
