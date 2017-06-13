@@ -2,22 +2,34 @@ package io.swagger.codegen.languages;
 
 import com.samskivert.mustache.Mustache;
 import io.swagger.codegen.*;
+
+import io.swagger.codegen.CliOption;
+import io.swagger.codegen.CodegenConfig;
+import io.swagger.codegen.CodegenConstants;
+import io.swagger.codegen.CodegenOperation;
+import io.swagger.codegen.CodegenParameter;
+import io.swagger.codegen.CodegenResponse;
+import io.swagger.codegen.CodegenType;
+import io.swagger.codegen.DefaultCodegen;
+import io.swagger.codegen.SupportingFile;
 import io.swagger.models.Info;
+
+import com.samskivert.mustache.Mustache;
+import io.swagger.codegen.*;
+import io.swagger.models.*;
+
 import org.yaml.snakeyaml.error.Mark;
 import io.swagger.codegen.utils.Markdown;
-import io.swagger.models.Model;
-import io.swagger.models.Operation;
-import io.swagger.models.Swagger;
 import io.swagger.models.properties.ArrayProperty;
 import io.swagger.models.properties.MapProperty;
 import io.swagger.models.properties.Property;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import javax.net.ssl.SSLContext;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StaticHtml2Generator extends DefaultCodegen implements CodegenConfig {
     protected String invokerPackage = "io.swagger.client"; // default for Java and Android
@@ -201,6 +213,57 @@ public class StaticHtml2Generator extends DefaultCodegen implements CodegenConfi
         } else {
             LOGGER.error("Swagger object description is empty [" + swagger.getInfo().getTitle() + "]");
         }
+
+        Map<String, Object> vendorExtension = swagger.getInfo().getVendorExtensions();
+        if (vendorExtension.size() > 0) {
+            if (vendorExtension.containsKey(CodegenConstants.TABLE_CONTENT_KEY)) {
+                additionalProperties.put(
+                    CodegenConstants.TABLE_CONTENT_KEY,
+                    buildTableOfContent((Map<String, Object>)vendorExtension.get(CodegenConstants.TABLE_CONTENT_KEY))
+                );
+            } else {
+                // Silence is golden
+            }
+        }
+    }
+
+    private String buildTableOfContent(Map<String, Object> table) {
+        String tableSchema = (String)table.get("tableSchema");
+        String content = (String)table.get("contentForTable");
+
+        String regex = "(%[a-zA-Z\\s]{0,}%[(]#[a-zA-Z\\-]{1,}[)])";
+        String rsl = content;
+
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(content);
+
+        while (m.find()) {
+            String[] data = getIdAndTitleFromString(m.group());
+            String wrapper = "<span id=\"" + data[0] + "\">" + data[1] + "</span>";
+            String pp = Pattern.quote(m.group()); // Add \Q String \E (Normal char)
+
+            rsl = rsl.replaceFirst(pp, wrapper);
+        }
+
+
+        Markdown markdown = new Markdown();
+        String result = markdown.toHtml(tableSchema);
+        String contentR = markdown.toHtml(rsl);
+        return result + " \n " + contentR;
+    }
+
+    private String[] getIdAndTitleFromString(String match) {
+        String[] seq = new String[2];
+
+        String regex1 = "#[a-zA-Z\\-]{1,}";
+        Matcher m1 = Pattern.compile(regex1).matcher(match);
+        seq[0] = m1.find() ? m1.group().replaceFirst("#", "") : null;
+
+        String regex2 = "%([a-zA-Z\\s]{0,})%";
+        Matcher m2 = Pattern.compile(regex2).matcher(match);
+        seq[1] = m2.find() ? m2.group().replaceAll("%", "") : null;
+
+        return seq;
     }
 
     /**

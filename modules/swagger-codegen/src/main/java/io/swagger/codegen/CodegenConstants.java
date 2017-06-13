@@ -10,6 +10,8 @@ public class CodegenConstants {
     public static final String MODEL_PACKAGE = "modelPackage";
     public static final String MODEL_PACKAGE_DESC = "package for generated models";
 
+    public static final String TABLE_CONTENT_KEY = "x-tableContent";
+
     public static final String TEMPLATE_DIR = "templateDir";
 
     public static final String ALLOW_UNICODE_IDENTIFIERS = "allowUnicodeIdentifiers";
